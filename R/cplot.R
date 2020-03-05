@@ -147,6 +147,12 @@ cplot <- function(object,
     if (is.null(data)) {
         data <- prediction::find_data(object)
     }
+    
+    # instead of using different selection mechanisms with conditionals 
+    # throughout, we coerce data.table to data.frame
+    if (inherits(data, 'data.table')) {
+        data <- data.frame(data)
+    }
 
     if (is.null(x)) {
         x <- attributes(terms(object))[["term.labels"]][1L]
