@@ -1,0 +1,125 @@
+---
+title: "Marginal effects visualization with ggplot2"
+output: github_document
+---
+
+This package overrides plotting functions from the `margins` `R` package in order to produce `ggplot2` objects. This makes it much easier for users to customize the look of their marginal effects and predicted probabilities plots.
+
+To install this package, execute the following commands:
+
+```{r, eval = FALSE}
+library(remotes)
+install_github('vincentarelbundock/marginsplot')
+```
+
+To use the package, you need to load `marginsplot` **after** `margins`, to ensure that the new plotting functions take precedence. For example:
+
+```{r}
+library(margins)
+library(marginsplot)
+mod <- lm(hp ~ wt*drat, data = mtcars)
+cplot(mod, dx = 'drat', x = 'wt')
+```
+
+Alternatively, you could explicitly prioritize `marginsplot` using the `conflicted` package:
+
+```{r}
+library(conflicted)
+conflict_prefer('cplot', 'marginsplot')
+conflict_prefer('plot', 'marginsplot')
+```
+
+The next section is a modified version of the `margins` README, which shows how to customize the output of `marginsplot`.
+
+# Modified `margins` README
+
+## Visualization
+
+The package implements several useful additional features for summarizing model objects, including:
+
+ - A `plot()` method for the new "margins" class that ports Stata's `marginsplot` command.
+ - A plotting function `cplot()` to provide the commonly needed visual summaries of predictions or average marginal effects conditional on a covariate.
+ - A `persp()` method for "lm", "glm", and "loess" objects to provide three-dimensional representations of response surfaces or marginal effects over two covariates.
+ - An `image()` method for the same that produces flat, two-dimensional heatmap-style representations of `persp()`-type plots.
+ 
+`plot()` and `cplot()` return `ggplot2` objects, which can be further customized using themes and other `ggplot2` options.
+
+### Marginal effects plots
+
+Using the `plot()` method yields an aesthetically similar result to Stata's `marginsplot`:
+
+```{r marginsplot}
+library("webuse")
+webuse::webuse("nhanes2")
+mod3 <- glm(highbp ~ sex * agegrp * bmi, data = nhanes2, family = binomial)
+summary(marg3 <- margins(mod3))
+plot(marg3)
+```
+
+### Conditional effects plots
+
+In addition to the estimation procedures and `plot()` generic, **margins** offers several plotting methods for model objects. First, there is a new generic `cplot()` that displays predictions or marginal effects (from an "lm" or "glm" model) of a variable conditional across values of third variable (or itself). For example, here is a graph of predicted probabilities from a logit model:
+
+```{r cplot1, warning=FALSE}
+mod4 <- glm(am ~ wt*drat, data = mtcars, family = binomial)
+cplot(mod4, x = "wt", dx = 'drat')
+```
+
+And fitted values with a factor independent variable:
+
+```{r cplot2}
+cplot(lm(Sepal.Length ~ Species, data = iris))
+```
+
+and a graph of the effect of `drat` across levels of `wt`:
+
+```{r cplot3}
+cplot(mod4, x = "wt", dx = "drat", what = "effect")
+```
+
+### Customizing the look of your plots
+
+Since `cplot()` and `plot()` return `ggplot2` objects, the look is very easy to customize. For example, we could flip the marginal effects plot on its side, change the colors and line type, rename the variables, and add a red line at 0:
+
+```{r plot-look}
+library(ggplot2)
+mod3 <- glm(highbp ~ sex * agegrp * bmi, data = nhanes2, family = binomial)
+marg3 <- margins(mod3)
+plot(marg3,
+     level = .99,
+     colour = 'turquoise', size = 1.5, linetype = 'dashed',
+     term_map = c('Body Mass Index' = 'bmi','Gender' = 'sex')) + 
+  geom_hline(yintercept = 0, colour = 'red') +
+  xlab('The two variables I care about') +
+  ylab('Average marginal effects with 95% confidence intervals') +
+  coord_flip()
+```
+
+Notice that the `agegrp` does not appear in the plot above because it was omitted from the `term_map` argument. This gives you a convenient way to omit terms from the plot.
+
+We can apply the same kinds of changes to graphs produced by `cplot()`:
+
+```{r cplot-look}
+library(ggplot2)
+cplot(mod4, x = "wt", dx = 'drat', what='effect', size=2, colour='blue', 
+      fill = 'pink', alpha=1, linetype='dashed', rugplot=FALSE) + 
+    theme_grey() +
+    xlab('Custom horizontal label') +
+    ylab('Custom vertical label') +
+    ggtitle('This is a custom title')
+```
+
+You can even use one of many user-created themes that are floating around the web. For instance, here is a plot drawn with the [`ggpomological theme`](https://github.com/gadenbuie/ggpomological) and the [Homemade Apple font](https://fonts.google.com/specimen/Homemade+Apple/):
+
+```{r cplot_pomological, eval = FALSE}
+library(ggpomological)
+cplot(mod4, x = "wt", dx = 'drat', what='effect', alpha=.5, fill='#efe1c6', colour='#6f5438') + 
+    theme_pomological_fancy()
+```
+
+If you would like even more control over your plots, `cplot()` can also return a data frame of quantities of interest:
+
+```{r cplot_ggplot2}
+dat <- cplot(mod4, x = "wt", dx = "drat", what = "effect", draw = FALSE)
+head(dat)
+```

@@ -1,0 +1,23 @@
+Package: marginsplot
+Title: Plot (conditional) marginal effects using the 'margins' and 'ggplot2' packages
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Vincent",
+           family = "Arel-Bundock",
+           role = c("aut", "cre"),
+           email = "vincent.arel-bundock@umontreal.ca",
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: What the package does (one paragraph).
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    ggplot2,
+    prediction,
+    margins
+Suggests: 
+    MASS,
+    lme4,
+    vdiffr,
+    testthat (>= 2.1.0)
+RoxygenNote: 7.0.2
