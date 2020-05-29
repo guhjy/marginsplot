@@ -44,7 +44,18 @@ cplot_extract.default <- function(object,
 
 
         # generates predictions as mean/mode of all variables rather than average prediction!
-        tmpdat <- lapply(data[, names(data) != xvar, drop = FALSE], prediction::mean_or_mode)
+        tmpdat <- data[, names(data) != xvar, drop = FALSE]
+
+        # convert to factors in case factor() is used in the model formula
+        # rather than applied to a column of the original dataframe
+        factor_variables <- find_terms_in_model(object)$fnames
+        for (fv in factor_variables) {
+            if (!is.factor(data[[fv]])) {
+                tmpdat[[fv]] <- as.factor(tmpdat[[fv]])
+            }
+        }
+
+        tmpdat <- lapply(tmpdat, prediction::mean_or_mode)
 
 
         # data.frame with all combinations of xvals, zvals, and mean/mode values 
