@@ -42,8 +42,10 @@ cplot_extract.default <- function(object,
     # extract predicted values
     if (what == "prediction") {
 
+
         # generates predictions as mean/mode of all variables rather than average prediction!
-        tmpdat <- lapply(dat[, names(dat) != xvar, drop = FALSE], prediction::mean_or_mode)
+        tmpdat <- lapply(data[, names(data) != xvar, drop = FALSE], prediction::mean_or_mode)
+
 
         # data.frame with all combinations of xvals, zvals, and mean/mode values 
         tmpdat[[xvar]] <- xvals
@@ -54,6 +56,7 @@ cplot_extract.default <- function(object,
 
         # predicted values
         outdat <- prediction(model = object, data = tmpdat, type = type, level = level, vcov = vcov)
+
 
         # output
         out <- structure(list(xvals = outdat[[xvar]],
@@ -73,6 +76,7 @@ cplot_extract.default <- function(object,
         }
 
         marg <- margins(model = object, data = data, at = at, type = type, vcov = vcov)
+
 
         if (is.null(zvals)) {
             out <- summary(marg, level = level)[ , c(xvar, "AME", "upper", "lower", "factor"), drop = FALSE]
